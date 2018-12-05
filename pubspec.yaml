@@ -21,6 +21,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   intl:
   http:
+  connectivity:
 
 dev_dependencies:
   flutter_test:

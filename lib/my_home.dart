@@ -3,7 +3,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:connectivity/connectivity.dart';
 
 class MyHome extends StatefulWidget {
   @override
@@ -14,44 +16,78 @@ class _MyHomeState extends State<MyHome> {
   List<EarthQuake> _list = [];
   String secondValue;
   var refreshKey = GlobalKey<RefreshIndicatorState>();
+  var _connectionStatus = 'Unknown';
+  Connectivity connectivity;
+  StreamSubscription<ConnectivityResult> subscription;
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _connectivity();
+  }
+
+  @override
+  void dispose() {
+    subscription.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Quake Report"),
-        elevation: defaultTargetPlatform == TargetPlatform.iOS ? 0.0:5.0,
-      ),
-      body: new RefreshIndicator(
-        key: refreshKey,
+        appBar: AppBar(
+          title: Text("Quake Report"),
+          elevation: defaultTargetPlatform == TargetPlatform.iOS ? 0.0 : 5.0,
+        ),
+        body: new RefreshIndicator(
+          key: refreshKey,
           child: _body(),
-          onRefresh:() => _refresh(),
-      )
-    );
+          onRefresh: () => _refresh(),
+        ));
   }
 
-  Future<Null> _refresh()async{
-    refreshKey.currentState?.show();
-    setState(() {
-      _list.clear();
-      return _body();
-    });
-    await Future.delayed(Duration(seconds:3));
+  void _connectivity(){
+    connectivity = new Connectivity();
+    subscription =
+        connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
+          _connectionStatus = result.toString();
+          print(_connectionStatus);
+          if (result == ConnectivityResult.wifi || result == ConnectivityResult.mobile) {
+            setState(() {
+
+            });
+          }
+        });
+  }
+
+  Future<Null> _refresh() async {
+   try{
+     refreshKey.currentState?.show();
+     setState(() {
+       _list.clear();
+       return _body();
+     });
+     await Future.delayed(Duration(seconds: 3));
+   }on Exception{
+     print("Error 404");
+   }
     return null;
   }
 
-  Widget _body(){
+  Widget _body() {
     return Center(
       child: Container(
         child: FutureBuilder(
             future: _getEarthQuake(),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
               if (snapshot.hasError) {
-                return Text("No Internet Connection... Unable to fetch Data",
+                return Text("No Internet Connection\n\nCould not fetch Data",
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize:27, fontWeight: FontWeight.bold));
-              }
-              else if(snapshot.hasData) {
+                    style:
+                        TextStyle(fontSize:30, fontWeight: FontWeight.bold));
+              } else if (snapshot.hasData) {
                 return _quakeUI(snapshot);
               }
               return CircularProgressIndicator();
@@ -126,26 +162,28 @@ class _MyHomeState extends State<MyHome> {
 
   Future<List<EarthQuake>> _getEarthQuake() async {
     var _url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
-    var _data = await http.get(_url);
-    var _jsonData = json.decode(_data.body);
-    var _feature = _jsonData["features"];
-    MaterialColor _color = Colors.blue;
+    http.Response _response = await http.get(_url);
+    if (_response.statusCode == HttpStatus.ok) {
+      var _jsonData = json.decode(_response.body);
+      var _feature = _jsonData["features"];
+      MaterialColor _color = Colors.blue;
 
-    for (var _result in _feature) {
-      var properties = _result["properties"];
+      for (var _result in _feature) {
+        var properties = _result["properties"];
 
-      if (double.parse((properties["mag"]).toString()) >= 4.5) {
-        _color = Colors.red;
-      } else {
-        _color = Colors.blue;
+        if (double.parse((properties["mag"]).toString()) >= 4.5) {
+          _color = Colors.red;
+        } else {
+          _color = Colors.blue;
+        }
+
+        EarthQuake _earthQuake = EarthQuake(
+            (properties["mag"]).toString(),
+            (properties["place"]).toString(),
+            (properties["time"]).toString(),
+            _color);
+        _list.add(_earthQuake);
       }
-
-      EarthQuake _earthQuake = EarthQuake(
-          (properties["mag"]).toString(),
-          (properties["place"]).toString(),
-          (properties["time"]).toString(),
-          _color);
-      _list.add(_earthQuake);
     }
     return _list;
   }
