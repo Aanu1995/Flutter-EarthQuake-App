@@ -106,9 +106,10 @@ class _MyHomeState extends State<MyHome> {
                 leading: CircleAvatar(
                   backgroundColor: snapshot.data[index].color,
                   foregroundColor: Colors.grey,
+                  radius:30.0 ,
                   child: Text(
                     _magValue(snapshot.data[index].magnitude.toString()),
-                    style: TextStyle(fontSize: 20, color: Colors.white),
+                    style: TextStyle(fontSize: 22, color: Colors.white,fontWeight: FontWeight.bold),
                   ),
                 ),
                 title: Text(_polish(snapshot.data[index].place),
@@ -137,9 +138,15 @@ class _MyHomeState extends State<MyHome> {
   String _polish(String snapshot) {
     String value = snapshot.toLowerCase();
     var correct = value.indexOf("of");
-    String firstvalue = (snapshot.substring(0, (correct + 2))).toUpperCase();
-    secondValue = snapshot.substring((correct + 3), value.length);
-    return "$firstvalue";
+    if(correct != -1){
+      String firstvalue = (snapshot.substring(0, (correct + 2))).toUpperCase();
+      secondValue = snapshot.substring((correct + 3), value.length);
+      return "$firstvalue";
+    }
+    else{
+      secondValue = snapshot;
+      return "";
+    }
   }
 
   String _getTime(String value) {
