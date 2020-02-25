@@ -4,10 +4,6 @@ import 'package:flutter_earthquake/splash_screen.dart';
 
 void main() => runApp(MyApp());
 
-var routes = <String, WidgetBuilder>{
-  "/home": (BuildContext context) => MyHome(),
-};
-
 class MyApp extends StatefulWidget {
   @override
   _SplashScreenState createState() => _SplashScreenState();
@@ -17,14 +13,15 @@ class _SplashScreenState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: "EarthQuake",
-        theme: ThemeData(
-            primarySwatch: Colors.blue,
-        ),
-        debugShowCheckedModeBanner: false,
-        routes: routes,
-        home: SplashScreen()
+      title: "EarthQuake",
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      debugShowCheckedModeBanner: false,
+      routes: <String, WidgetBuilder>{
+        "/home": (BuildContext context) => MyHome(),
+      },
+      home: SplashScreen(),
     );
   }
 }
-
