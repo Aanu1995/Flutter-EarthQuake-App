@@ -11,10 +11,13 @@ class ApiData extends Equatable {
     List<EarthQuake> list = [];
     feature.forEach((result) {
       var properties = result["properties"];
-      var magnitude = properties["mag"].toString();
+      var magnitude =
+          properties["mag"] == null ? "0.0" : properties["mag"].toString();
       var color = magnitudeColor(magnitude);
-      var place = properties["place"].toString();
-      var time = properties["time"].toString();
+      var place =
+          properties["place"] != null ? properties["place"].toString() : "";
+      var time =
+          properties["time"] != null ? properties["time"].toString() : "";
       list.add(EarthQuake(magnitude, place, time, color));
     });
     return ApiData(earthQuake: list);
